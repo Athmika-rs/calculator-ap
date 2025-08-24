@@ -1,94 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Calculator</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Real Calculator</title>
+  <meta name="description" content="A clean, realistic calculator you can host on GitHub Pages." />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+    :root{
+      --bg:#0f1115; --panel:#171923; --accent:#4f46e5; --accent-2:#22c55e; --text:#e5e7eb; --muted:#9ca3af; --danger:#ef4444;
     }
-    .calculator {
-      background: #222;
-      padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:linear-gradient(145deg,#0b0d12,#0f1115 40%,#0b0d12);
+      color:var(--text); font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,"Apple Color Emoji","Segoe UI Emoji";
+      display:grid; place-items:center; padding:24px;
     }
-    #display {
-      width: 100%;
-      height: 50px;
-      margin-bottom: 10px;
-      font-size: 22px;
-      text-align: right;
-      padding: 10px;
-      border: none;
-      border-radius: 10px;
-      background: #fff;
+    .wrap{width:min(380px,96vw)}
+    .calc{
+      background:var(--panel); border-radius:24px; padding:16px 16px 20px; box-shadow:0 20px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.03);
     }
-    .buttons {
-      display: grid;
-      grid-template-columns: repeat(4, 60px);
-      gap: 10px;
+    .title{display:flex; align-items:center; justify-content:space-between; margin:4px 6px 10px}
+    .brand{font-weight:700; letter-spacing:.4px; font-size:14px; color:var(--muted)}
+    .led{width:8px;height:8px;border-radius:999px;background:#10b981;box-shadow:0 0 10px #10b981}
+    .screen{
+      background:#0a0c12; border-radius:16px; padding:14px; box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+      display:grid; gap:6px; margin:8px 4px 14px; min-height:92px;
     }
-    button {
-      height: 60px;
-      font-size: 20px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
+    .expr{font-size:14px; color:var(--muted); text-align:right; min-height:20px; word-break:break-all}
+    .result{font-size:34px; font-weight:700; text-align:right; letter-spacing:.5px; word-break:break-all}
+
+    .keys{display:grid; gap:10px; grid-template-columns:repeat(4,1fr)}
+    button.key{
+      appearance:none; border:none; border-radius:16px; padding:14px 0; font-size:20px; font-weight:600; cursor:pointer;
+      color:var(--text); background:#1f2330; box-shadow: 0 6px 16px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.04);
+      transition:transform .05s ease, filter .2s ease, opacity .2s ease;
     }
-    .btn-operator { background: orange; color: #fff; }
-    .btn-equal { background: green; color: #fff; grid-column: span 2; }
-    .btn-clear { background: red; color: #fff; }
-    button:hover { opacity: 0.8; }
+    button.key:active{ transform:translateY(1px); filter:brightness(0.95) }
+    .op { background:#23283a }
+    .accent { background:var(--accent); color:white }
+    .ok { background:var(--accent-2); color:#08120b }
+    .danger { background:#2a1f23; color:#fecaca; border:1px solid rgba(239,68,68,.3) }
+    .wide { grid-column: span 2 }
+
+    .row{display:contents}
+    .footer{ margin-top:14px; text-align:center; font-size:12px; color:var(--muted) }
+    .kbd{ padding:2px 6px; border-radius:6px; background:#0f131c; border:1px solid #273047; color:#cbd5e1 }
+
+    @media (max-width:360px){ .result{font-size:28px} .keys{gap:8px} button.key{border-radius:14px} }
   </style>
 </head>
 <body>
-  <div class="calculator">
-    <input type="text" id="display" disabled>
-    <div class="buttons">
-      <button class="btn-clear" onclick="clearDisplay()">C</button>
-      <button onclick="appendValue('/')">÷</button>
-      <button onclick="appendValue('*')">×</button>
-      <button onclick="appendValue('-')">−</button>
+  <div class="wrap">
+    <div class="calc" role="application" aria-label="Calculator">
+      <div class="title">
+        <div class="brand">REAL CALCULATOR</div>
+        <div class="led" aria-hidden="true"></div>
+      </div>
 
-      <button onclick="appendValue('7')">7</button>
-      <button onclick="appendValue('8')">8</button>
-      <button onclick="appendValue('9')">9</button>
-      <button onclick="appendValue('+')">+</button>
+      <div class="screen" aria-live="polite">
+        <div id="expression" class="expr">0</div>
+        <div id="output" class="result">0</div>
+      </div>
 
-      <button onclick="appendValue('4')">4</button>
-      <button onclick="appendValue('5')">5</button>
-      <button onclick="appendValue('6')">6</button>
-      <button onclick="appendValue('.')">.</button>
+      <div class="keys" id="keys">
+        <button class="key danger" data-key="AC" aria-label="All Clear">AC</button>
+        <button class="key op" data-key="DEL" aria-label="Delete">DEL</button>
+        <button class="key op" data-key="%">%</button>
+        <button class="key op" data-key="/">÷</button>
 
-      <button onclick="appendValue('1')">1</button>
-      <button onclick="appendValue('2')">2</button>
-      <button onclick="appendValue('3')">3</button>
-      <button class="btn-equal" onclick="calculate()">=</button>
+        <button class="key" data-key="7">7</button>
+        <button class="key" data-key="8">8</button>
+        <button class="key" data-key="9">9</button>
+        <button class="key op" data-key="*">×</button>
 
-      <button onclick="appendValue('0')" style="grid-column: span 2;">0</button>
+        <button class="key" data-key="4">4</button>
+        <button class="key" data-key="5">5</button>
+        <button class="key" data-key="6">6</button>
+        <button class="key op" data-key="-">−</button>
+
+        <button class="key" data-key="1">1</button>
+        <button class="key" data-key="2">2</button>
+        <button class="key" data-key="3">3</button>
+        <button class="key op" data-key="+">+</button>
+
+        <button class="key wide" data-key="0">0</button>
+        <button class="key" data-key=".">.</button>
+        <button class="key accent ok" data-key="=">=</button>
+      </div>
+
+      <div class="footer">Keyboard friendly: <span class="kbd">0-9</span> <span class="kbd">+ − × ÷</span> <span class="kbd">.</span> <span class="kbd">Enter</span> <span class="kbd">Backspace</span> <span class="kbd">Esc</span></div>
     </div>
   </div>
 
   <script>
-    function appendValue(val) {
-      document.getElementById("display").value += val;
-    }
-    function clearDisplay() {
-      document.getElementById("display").value = "";
-    }
-    function calculate() {
-      try {
-        document.getElementById("display").value = eval(document.getElementById("display").value);
-      } catch (e) {
-        alert("Invalid Expression");
+    (function(){
+      const exprEl = document.getElementById('expression');
+      const outEl = document.getElementById('output');
+      const keys = document.getElementById('keys');
+
+      let expr = '';
+      let justEvaluated = false;
+
+      function update(){
+        exprEl.textContent = expr || '0';
       }
-    }
+      function setOutput(value){
+        outEl.textContent = value;
+      }
+      function clearAll(){ expr=''; setOutput('0'); update(); }
+      function del(){ if(justEvaluated){ clearAll(); justEvaluated=false; return;} expr = expr.slice(0,-1); update(); }
+
+      function append(token){
+        if(justEvaluated && /[0-9.]/.test(token)) { expr = ''+token; justEvaluated=false; update(); return; }
+        if(justEvaluated && /[+\-*/%]/.test(token)) { justEvaluated=false; }
+
+        const last = expr.slice(-1);
+        if(/[+\-*/%.]/.test(token) && /[+\-*/%.]/.test(last)){
+          // replace double operators/decimal
+          expr = expr.slice(0,-1) + token;
+        } else {
+          expr += token;
+        }
+        update();
+      }
+
+      function safeEval(str){
+        // sanitize: allow only digits, ops, decimal, parentheses, whitespace
+        if(!/^[0-9+\-*/%.()\s]+$/.test(str)) return 'Error';
+        // avoid leading zeros turning into octal in older engines (rare), trim whitespace
+        const s = str.trim();
+        try {
+          // Use Function constructor instead of eval (still evaluate math only after sanitization)
+          const res = Function('return (' + s + ')')();
+          if(typeof res === 'number' && isFinite(res)) return res;
+          return 'Error';
+        } catch(_){ return 'Error'; }
+      }
+
+      function calculate(){
+        if(!expr) { setOutput('0'); return; }
+        // Prevent trailing operator
+        if(/[+\-*/%.]$/.test(expr)) expr = expr.slice(0,-1);
+        const value = safeEval(expr.replace(/\u00F7|÷/g,'/').replace(/\u00D7|×/g,'*'));
+        setOutput(String(value));
+        justEvaluated = true;
+      }
+
+      keys.addEventListener('click', (e)=>{
+        const btn = e.target.closest('button.key');
+        if(!btn) return;
+        const k = btn.getAttribute('data-key');
+        if(k==='AC') return void clearAll();
+        if(k==='DEL') return void del();
+        if(k==='=') return void calculate();
+        append(k);
+      });
+
+      window.addEventListener('keydown', (e)=>{
+        const k = e.key;
+        if(/^[0-9]$/.test(k)) return append(k);
+        if(['+','-','*','/','%','.','(',')'].includes(k)) return append(k);
+        if(k==='Enter' || k==='=') return calculate();
+        if(k==='Backspace') return del();
+        if(k==='Escape') return clearAll();
+      });
+
+      // init
+      update();
+    })();
   </script>
 </body>
 </html>
